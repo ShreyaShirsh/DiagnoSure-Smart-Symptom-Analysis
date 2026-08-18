@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiagnoSure - Complete Working Version</title>
+
+    <style>
+        /* Complete CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066CC;
+            --primary-dark: #0052A3;
+            --secondary: #00C853;
+            --danger: #DC3545;
+            --text: #1A1A1A;
+            --text-light: #666666;
+            --bg: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg-secondary);
+            overflow-x: hidden;
+        }
+
+        /* Scroll Progress Bar */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: 10000;
+            transition: width 0.1s ease;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a4fa3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: 0.6s ease;
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .preloader-content {
+            text-align: center;
+            color: white;
+        }
+
+        .heartbeat-icon {
+            animation: heartbeat 1.5s infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            10%,
+            30% {
+                transform: scale(1.1);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: scale(1);
+            }
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background: white;
+            animation: loadProgress 2s ease-in-out infinite;
+        }
+
+        @keyframes loadProgress {
+            0% {
+                width: 0%;
+            }
+
+            50% {
+                width: 70%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        /* Fade In Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+        }
+
+        .fade-in.visible {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Flip Animation */
+        @keyframes flipIn {
+            from {
+                opacity: 0;
+                transform: perspective(400px) rotateY(90deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: perspective(400px) rotateY(0deg);
+            }
+        }
+
+        .flip-in {
+            opacity: 0;
+        }
+
+        .flip-in.visible {
+            animation: flipIn 0.8s ease forwards;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-link.active::after,
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .hero-title {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #FFFFFF, #E0F2FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .cta-button.primary {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .cta-button.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-button.secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cta-button.secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: #E6F2FF;
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-light);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 16px;
+            transition: all 0.3s;
+            border: 1px solid #E9ECEF;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: #E6F2FF;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text);
+            color: white;
+            padding: 60px 0 20px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 16px;
+        }
+
+        .footer-section a {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            display: flex;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 32px;
+            }
+
+            .hero-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Assessment Form Section */
+        .assessment-section {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+
+        .assessment-form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .assessment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #E9ECEF;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .severity-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .severity-option {
+            padding: 16px;
+            border: 2px solid #E9ECEF;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .severity-option input[type="radio"] {
+            display: none;
+        }
+
+        .severity-option:hover {
+            border-color: var(--primary);
+            background: #F8F9FA;
+        }
+
+        .severity-option input[type="radio"]:checked+span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .severity-option:has(input:checked) {
+            border-color: var(--primary);
+            background: #E6F2FF;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: start;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 18px;
+            padding: 18px;
+        }
+
+        /* Assessment Result */
+        .assessment-result {
+            text-align: center;
+        }
+
+        .result-header {
+            margin-bottom: 30px;
+        }
+
+        .result-header svg {
+            margin-bottom: 20px;
+        }
+
+        .result-header h3 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .result-card h4 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .diagnosis-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .diagnosis-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .confidence-badge {
+            background: #00C853;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .diagnosis-description {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .recommendations-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #E9ECEF;
+            color: var(--text);
+        }
+
+        .recommendations-list li:last-child {
+            border-bottom: none;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .result-actions button {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .severity-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="script.js"></script>
+</head>
+
+<body>
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-content">
+            <div class="heartbeat-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="white">
+                    <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+            </div>
+            <h2>DiagnoSure</h2>
+            <p>Loading Healthcare Intelligence...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="logo">
+                <svg width="42" height="42" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="30" fill="#0066CC" />
+                    <path d="M32 14v36M14 32h36" stroke="white" stroke-width="4" />
+                    <path d="M16 44h8l4-10 6 14 4-8h10" stroke="white" stroke-width="3" fill="none"
+                        stroke-linecap="round" />
+                </svg>
+                <span>DiagnoSure</span>
+            </div>
+            <nav class="nav" id="mainNav">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#assessment" class="nav-link">Assessment</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <div style="display: flex; gap: 12px; margin-left: 20px; align-items: center;">
+                    <a href="login.html" class="nav-link" style="color: var(--primary); font-weight: 600;">Login</a>
+                    <a href="register.html" class="cta-button primary" style="padding: 8px 16px; font-size: 14px; box-shadow: none;">Register</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="fade-in">
+                <div class="hero-badge">
+                    Powered by Advanced AI Technology
+                </div>
+                <h1 class="hero-title">
+                    Early Detection <span class="gradient-text">Saves Lives</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Experience next-generation healthcare with our AI-powered symptom analysis system.
+                </p>
+                <div class="hero-buttons">
+                    <button class="cta-button primary" onclick="startAssessment()">
+                        Start Free Assessment
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">100+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Available</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">200+</div>
+                        <div class="stat-label">Conditions</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-badge">Features</span>
+                <h2 class="section-title">Next-Generation Healthcare</h2>
+                <p class="section-subtitle">Powered by cutting-edge AI and machine learning</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card flip-in">
+                    <div class="feature-icon">🩺</div>
+                    <h3>AI Analysis</h3>
+                    <p>Advanced neural networks process your symptoms in milliseconds with 95% accuracy.</p>
+                </div>
+                <div class="feature-card flip-in">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Instant Results</h3>
+                    <p>Get preliminary diagnosis in under 30 seconds, available 24/7 wherever you are.</p>
+                </div>
+                <div class="feature-card flip-in">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure & Private</h3>
+                    <p>Your health data protected with military-grade encryption and HIPAA compliance.</p>
+                </div>
+                <div class="feature-card flip-in">
+                    <div class="feature-icon">📊</div>
+                    <h3>Detailed Reports</h3>
+                    <p>Comprehensive PDF reports with visual insights and recommendations for your doctor.</p>
+                </div>
+                <div class="feature-card flip-in">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Multi-Language</h3>
+                    <p>Available in 12+ languages, making healthcare accessible to everyone globally.</p>
+                </div>
+                <div class="feature-card flip-in">
+                    <div class="feature-icon">👨‍👩‍👧</div>
+                    <h3>Family Profiles</h3>
+                    <p>Manage health assessments for your entire family with individual tracking.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section fade-in">
+        <div class="container">
+            <h2>Ready to Take Control of Your Health?</h2>
+            <p>Join thousands of users who trust DiagnoSure for preliminary health assessments</p>
+            <button class="cta-button primary" style="margin: 0 auto;" onclick="startAssessment()">
+                Start Your Free Assessment Now
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- Assessment Form Section -->
+    <section class="assessment-section" id="assessment">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-badge">Free Health Assessment</span>
+                <h2 class="section-title">Start Your AI Health Check</h2>
+                <p class="section-subtitle">Get preliminary diagnosis in under 30 seconds</p>
+            </div>
+
+            <div class="assessment-form-container fade-in">
+                <div id="assessmentLimitMessage" style="display: none; text-align: center; padding: 40px 20px;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 20px;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <h3 style="font-size: 24px; margin-bottom: 16px;">Assessment Limit Reached</h3>
+                    <p style="color: var(--text-light); margin-bottom: 30px; font-size: 16px;">You have used all 3 of your free assessments. Please login or register to access unlimited health assessments and all premium features.</p>
+                    <div style="display: flex; gap: 16px; justify-content: center;">
+                        <a href="login.html" class="cta-button secondary" style="color: var(--primary); border-color: var(--primary);">Login</a>
+                        <a href="register.html" class="cta-button primary">Register Now</a>
+                    </div>
+                </div>
+                <form class="assessment-form" id="assessmentForm">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age *</label>
+                            <input type="number" id="age" name="age" placeholder="Your age" min="1" max="120" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender *</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="symptoms">Primary Symptoms *</label>
+                        <textarea id="symptoms" name="symptoms" rows="4"
+                            placeholder="Describe your symptoms in detail (e.g., fever for 3 days, headache, body ache...)"
+                            required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Symptom Severity *</label>
+                        <div class="severity-selector">
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="mild" required>
+                                <span>😊 Mild</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="moderate" required>
+                                <span>😐 Moderate</span>
+                            </label>
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="severe" required>
+                                <span>😣 Severe</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">How long have you had these symptoms?</label>
+                        <select id="duration" name="duration" required>
+                            <option value="">Select duration</option>
+                            <option value="less-24h">Less than 24 hours</option>
+                            <option value="1-3days">1-3 days</option>
+                            <option value="4-7days">4-7 days</option>
+                            <option value="1-2weeks">1-2 weeks</option>
+                            <option value="more-2weeks">More than 2 weeks</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medical-history">Existing Medical Conditions (Optional)</label>
+                        <input type="text" id="medical-history" name="medical-history"
+                            placeholder="e.g., Diabetes, Hypertension">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="terms" required>
+                            <span>I understand this is a preliminary assessment and not a substitute for professional
+                                medical advice *</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="cta-button primary submit-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                        Get AI Assessment
+                    </button>
+                </form>
+
+                <div class="assessment-result" id="assessmentResult" style="display: none;">
+                    <div class="result-header">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <h3>Assessment Complete!</h3>
+                        <p>Your preliminary health analysis is ready</p>
+                    </div>
+
+                    <div class="result-card">
+                        <h4>Preliminary Diagnosis</h4>
+                        <div class="diagnosis-item">
+                            <span class="diagnosis-name">Common Cold (Viral Infection)</span>
+                            <span class="confidence-badge">85% Match</span>
+                        </div>
+                        <p class="diagnosis-description">Based on your symptoms, you may have a common cold caused by
+                            viral infection of the upper respiratory tract.</p>
+                    </div>
+
+                    <div class="result-card">
+                        <h4>Recommendations</h4>
+                        <ul class="recommendations-list">
+                            <li>✓ Rest and stay hydrated</li>
+                            <li>✓ Take over-the-counter pain relievers if needed</li>
+                            <li>✓ Monitor your temperature regularly</li>
+                            <li>⚠️ Consult a doctor if symptoms persist beyond 7 days</li>
+                            <li>⚠️ Seek immediate care if difficulty breathing develops</li>
+                        </ul>
+                    </div>
+
+                    <div class="result-actions">
+                        <button class="cta-button primary" onclick="downloadReport()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Report
+                        </button>
+                        <button class="cta-button secondary" onclick="startNewAssessment()">
+                            Start New Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- About Section -->
+    <section id="about" class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">About</span>
+                <h2 class="section-title">About DiagnoSure</h2>
+                <p class="section-subtitle">
+                    DiagnoSure is an AI powered health screening system designed to help users understand their symptoms
+                    quickly and get preliminary health insights.
+                </p>
+            </div>
+
+            <div class="features-grid">
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>AI Diagnosis</h3>
+                    <p>Machine learning models analyse symptoms and detect possible health risks.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⏱</div>
+                    <h3>Fast Results</h3>
+                    <p>Receive health insights within seconds after filling the assessment.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🛡</div>
+                    <h3>Privacy First</h3>
+                    <p>Your health data stays private and secure.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="assessment-section">
+        <div class="container">
+
+            <div class="section-header">
+                <span class="section-badge">Contact</span>
+                <h2 class="section-title">Contact Us</h2>
+                <p class="section-subtitle">Reach out for support or questions</p>
+            </div>
+
+            <div class="assessment-form-container">
+                <form id="contactForm">
+
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="contactName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="contactEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea rows="4" required></textarea>
+                    </div>
+
+                    <button class="cta-button primary">Send Message</button>
+
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>DiagnoSure</h4>
+                    <p>AI-powered health assessment platform making healthcare accessible to everyone.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#">Pricing</a>
+                    <a href="#">API</a>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">HIPAA</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DiagnoSure. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 15l-6-6-6 6" />
+        </svg>
+    </button>
+
+    <script>
+        // Hide preloader after page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+            }, 2000);
+        });
+
+        // Scroll Progress Bar
+        function updateScrollProgress() {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scrollProgress').style.width = scrolled + '%';
+        }
+
+        window.addEventListener('scroll', updateScrollProgress);
+
+        // Back to Top Button
+        window.addEventListener('scroll', () => {
+            const backToTop = document.getElementById('backToTop');
+            if (window.scrollY > 500) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Scroll Animations (Intersection Observer)
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Add delay for stagger effect
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-in, .flip-in').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // Active Navigation Link
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        console.log('DiagnoSure loaded successfully - All animations working!');
+
+        // Button Functions
+        function startAssessment() {
+            const assessmentSection = document.getElementById('assessment');
+            if (assessmentSection) {
+                assessmentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                alert('✨ Assessment form coming soon! This is a demo version.\n\nIn the full version, you would:\n1. Fill out symptom details\n2. Get AI-powered analysis\n3. Receive preliminary diagnosis\n4. Download detailed report');
+            }
+        }
+
+        function downloadReport() {
+            let patientName = document.getElementById("name") ? document.getElementById("name").value : "";
+            if (!patientName) patientName = "Demo_Patient";
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(22);
+            doc.text("DiagnoSure Premium Report (Demo)", 105, 20, null, null, "center");
+
+            doc.setFontSize(14);
+            doc.text(`Patient Name: ${patientName}`, 20, 35);
+            doc.text(`Date of Assessment: ${new Date().toLocaleDateString()}`, 20, 45);
+
+            doc.setFontSize(18);
+            doc.setTextColor(0, 102, 204);
+            doc.text("Disease Detected: Common Cold (Viral Infection)", 20, 60);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            let y = 75;
+
+            // Mock Symptoms
+            doc.setFont(undefined, "bold");
+            doc.text("Associated Symptoms:", 20, y);
+            doc.setFont(undefined, "normal");
+            y += 8;
+            doc.text("mild fever, headache, throat pain", 20, y, { maxWidth: 170 });
+            y += 20;
+
+            // Mock Diet
+            doc.setFont(undefined, "bold");
+            doc.text("Recommended Diet:", 20, y);
+            doc.setFont(undefined, "normal");
+            y += 8;
+            doc.setFont(undefined, "italic");
+            doc.text("Hydrating fluids, warm soups, honey and lemon water.", 20, y, { maxWidth: 170 });
+            doc.setFont(undefined, "normal");
+            y += 25;
+
+            // Mock Precautions
+            doc.autoTable({
+                startY: y,
+                head: [['Precautions & Recommendations']],
+                body: [
+                    ["Rest and heavily hydrate"],
+                    ["OTC pain relievers (Ibuprofen / Acetaminophen)"],
+                    ["Monitor temperature every 4 hours"],
+                    ["Consult a physician if symptoms last more than 7 days"]
+                ],
+                theme: 'grid',
+                styles: { fontSize: 11 },
+                headStyles: { fillColor: [0, 102, 204] }
+            });
+
+            doc.save(`DiagnoSure_Demo_Report_${patientName.replace(/\s+/g, '_')}.pdf`);
+        }
+
+        function startNewAssessment() {
+            document.getElementById('assessmentResult').style.display = 'none';
+            document.getElementById('assessmentForm').style.display = 'flex';
+            document.getElementById('assessmentForm').reset();
+            window.scrollTo({ top: document.getElementById('assessment').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        // Assessment Form Submission
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const form = document.getElementById("assessmentForm");
+            const limitMessage = document.getElementById("assessmentLimitMessage");
+            
+            // Check Assessment Limit
+            let assessmentCount = parseInt(localStorage.getItem("freeAssessmentCount") || "0");
+            let isUserLoggedIn = localStorage.getItem("userLoggedIn") === "true";
+            
+            if (assessmentCount >= 3 && !isUserLoggedIn) {
+                if (form) form.style.display = "none";
+                if (limitMessage) limitMessage.style.display = "block";
+            }
+
+            if (form) {
+
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    
+                    if (assessmentCount >= 3 && !isUserLoggedIn) {
+                        form.style.display = "none";
+                        limitMessage.style.display = "block";
+                        return;
+                    }
+
+                    const name = document.getElementById("name").value;
+                    const age = document.getElementById("age").value;
+
+                    if (/[0-9]/.test(name)) {
+                        alert("Name should not contain numbers");
+                        return;
+                    }
+
+                    if (isNaN(age)) {
+                        alert("Age must contain numbers only");
+                        return;
+                    }
+
+                    const submitBtn = form.querySelector(".submit-btn");
+                    const originalText = submitBtn.innerHTML;
+
+                    submitBtn.innerHTML =
+                        '<span style="display:flex;align-items:center;gap:10px;">' +
+                        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="rotating">' +
+                        '<circle cx="12" cy="12" r="10"></circle></svg> Analyzing...</span>';
+
+                    submitBtn.disabled = true;
+
+                    const style = document.createElement("style");
+                    style.textContent =
+                        "@keyframes rotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}" +
+                        ".rotating{animation:rotate 1s linear infinite;}";
+
+                    document.head.appendChild(style);
+
+                    setTimeout(() => {
+                        // Increment score
+                        assessmentCount++;
+                        localStorage.setItem("freeAssessmentCount", assessmentCount);
+
+                        form.style.display = "none";
+                        document.getElementById("assessmentResult").style.display = "block";
+
+                        document
+                            .getElementById("assessmentResult")
+                            .scrollIntoView({ behavior: "smooth" });
+
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+
+                    }, 2000);
+
+                });
+
+            }
+
+            // NAME validation
+            const nameInput = document.getElementById("name");
+            if (nameInput) {
+                nameInput.addEventListener("input", function () {
+
+                    if (/[^a-zA-Z\s]/.test(this.value)) {
+                        alert("Only letters are allowed in the name field");
+                        this.value = this.value.replace(/[^a-zA-Z\s]/g, "");
+                    }
+
+                });
+            }
+
+            // AGE validation
+            const ageInput = document.getElementById("age");
+            if (ageInput) {
+                ageInput.addEventListener("input", function () {
+
+                    if (/[^0-9]/.test(this.value)) {
+                        alert("Only numbers are allowed in the age field");
+                        this.value = this.value.replace(/[^0-9]/g, "");
+                    }
+
+                });
+            }
+
+            // CONTACT NAME validation
+            const contactName = document.getElementById("contactName");
+            if (contactName) {
+                contactName.addEventListener("input", function () {
+
+                    if (/[^a-zA-Z\s]/.test(this.value)) {
+                        alert("Name should only contain letters");
+                        this.value = this.value.replace(/[^a-zA-Z\s]/g, "");
+                    }
+
+                });
+            }
+
+        });
+
+    </script>
+</body>
+
+</html>

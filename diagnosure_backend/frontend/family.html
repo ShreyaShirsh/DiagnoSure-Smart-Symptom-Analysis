@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Profiles - DiagnoSure Premium</title>
+    <script>
+        if (!localStorage.getItem('userLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0066CC; --primary-dark: #0052A3;
+            --secondary: #00C853; --danger: #DC3545;
+            --text: #1A1A1A; --text-light: #666666;
+            --bg: #F4F7F6; --bg-card: #FFFFFF;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+        }
+        .header {
+            background: white; padding: 15px 40px; display: flex;
+            justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .user-nav { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-light); text-decoration: none; font-weight: 600; margin-right: 20px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        .main-container { padding: 40px; max-width: 1200px; margin: 0 auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .page-header h1 { font-size: 32px; color: var(--text); }
+        .page-header p { color: var(--text-light); font-size: 16px; margin-top: 8px; }
+
+        .btn-add {
+            padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+        .btn-add:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+        .family-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        
+        .member-card {
+            background: var(--bg-card); border-radius: 20px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); text-align: center;
+            transition: all 0.3s;
+        }
+        .member-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+        
+        .member-avatar {
+            width: 80px; height: 80px; border-radius: 50%; background: #E6F2FF; margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--primary);
+            font-weight: 700;
+        }
+        .member-card h3 { font-size: 22px; color: var(--text); margin-bottom: 4px; }
+        .member-relation { color: var(--text-light); font-size: 14px; margin-bottom: 20px; display: block; }
+        
+        .member-stats { display: flex; justify-content: space-around; margin-bottom: 24px; padding: 15px 0; border-top: 1px solid #E9ECEF; border-bottom: 1px solid #E9ECEF; }
+        .stat-item { display: flex; flex-direction: column; gap: 4px; }
+        .stat-value { font-weight: 700; font-size: 18px; color: var(--text); }
+        .stat-label { font-size: 12px; color: var(--text-light); text-transform: uppercase; }
+        
+        .action-links { display: flex; gap: 12px; justify-content: center; }
+        .action-btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; transition: 0.3s; width: 100%; text-decoration: none; display: block;}
+        .action-primary { background: #E6F2FF; color: var(--primary); }
+        .action-primary:hover { background: var(--primary); color: white; }
+        .action-danger { background: #FFEBEE; color: var(--danger); width: auto; display: flex; align-items: center; justify-content: center; border-radius: 8px;}
+        .action-danger:hover { background: var(--danger); color: white; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="dashboard.html" class="logo">
+            <svg width="36" height="36" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="30" fill="#0066CC"/>
+                <path d="M32 14v36M14 32h36" stroke="white" stroke-width="4"/>
+                <path d="M16 44h8l4-10 6 14 4-8h10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span>DiagnoSure</span>
+        </a>
+        <div class="user-nav">
+            <div class="nav-links"><a href="dashboard.html">Dashboard</a></div>
+            <a href="account.html" class="user-profile" style="text-decoration: none; color: inherit;">
+                <div class="avatar">U</div>
+                <span>My Account</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1>Family Profiles</h1>
+                <p>Manage health records and AI assessments for your loved ones under a single premium account.</p>
+            </div>
+            <button class="btn-add" onclick="document.getElementById('addMemberModal').style.display='flex'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Add Family Member
+            </button>
+        </div>
+
+        <div class="family-grid" id="familyGrid">
+            <p style="text-align: center; color: var(--text-light); padding: 40px; grid-column: span 3;">Loading family profiles...</p>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="addMemberModal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:var(--bg-card); padding:30px; border-radius:20px; width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom:20px;">Add Family Member</h3>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <input type="text" id="fmName" placeholder="Full Name" style="padding:12px; border:1px solid #ddd; border-radius:10px;">
+                <input type="text" id="fmRelation" placeholder="Relation (e.g. Spouse, Son)" style="padding:12px; border:1px solid #ddd; border-radius:10px;">
+                <input type="number" id="fmAge" placeholder="Age" style="padding:12px; border:1px solid #ddd; border-radius:10px;">
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="saveFamilyMember()" style="padding:12px; background:var(--primary); color:white; border:none; border-radius:10px; flex:1; cursor:pointer; font-weight:bold;">Save</button>
+                    <button onclick="document.getElementById('addMemberModal').style.display='none'" style="padding:12px; background:#f0f0f0; color:#333; border:none; border-radius:10px; flex:1; cursor:pointer;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadFamilyMembers);
+
+        async function loadFamilyMembers() {
+            const userDataObj = JSON.parse(localStorage.getItem('userData') || '{}');
+            const grid = document.getElementById('familyGrid');
+            
+            if (!userDataObj.id) {
+                grid.innerHTML = `<p style="text-align:center; color:var(--danger); grid-column:span 3;">Error: No logged-in user.</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/family/?user_id=${userDataObj.id}`);
+                const members = await response.json();
+                
+                grid.innerHTML = `
+                    <div class="member-card">
+                        <div class="member-avatar">${userDataObj.name.charAt(0).toUpperCase()}</div>
+                        <h3>${userDataObj.name}</h3>
+                        <span class="member-relation">Primary Account Holder</span>
+                        <div class="member-stats">
+                            <div class="stat-item"><span class="stat-value">Active</span><span class="stat-label">Status</span></div>
+                        </div>
+                        <div class="action-links">
+                            <a href="member_assessment.html" class="action-btn action-primary" style="text-align:center;">Run Assessment</a>
+                        </div>
+                    </div>
+                `;
+
+                if (Array.isArray(members) && members.length > 0) {
+                    members.forEach(member => {
+                        const mInit = member.name.charAt(0).toUpperCase();
+                        grid.innerHTML += `
+                            <div class="member-card">
+                                <div class="member-avatar" style="background: #E8F5E9; color: #2E7D32;">${mInit}</div>
+                                <h3>${member.name}</h3>
+                                <span class="member-relation">${member.relation} (Age ${member.age})</span>
+                                <div class="member-stats">
+                                    <div class="stat-item"><span class="stat-value">Active</span><span class="stat-label">Status</span></div>
+                                </div>
+                                <div class="action-links">
+                                    <a href="member_assessment.html" class="action-btn action-primary" style="text-align:center;">Run Assessment</a>
+                                    <button class="action-btn action-danger" onclick="deleteMember(${member.id})" title="Remove Member">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                grid.innerHTML += `<p style="text-align:center; color:var(--danger); grid-column:span 3;">Network Error Loading Family.</p>`;
+            }
+        }
+
+        async function saveFamilyMember() {
+            const userDataObj = JSON.parse(localStorage.getItem('userData') || '{}');
+            const name = document.getElementById('fmName').value;
+            const relation = document.getElementById('fmRelation').value;
+            const age = document.getElementById('fmAge').value;
+
+            if(!name || !relation || !age) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/family/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user: userDataObj.id,
+                        name: name,
+                        relation: relation,
+                        age: parseInt(age)
+                    })
+                });
+
+                if(response.ok) {
+                    document.getElementById('addMemberModal').style.display='none';
+                    document.getElementById('fmName').value = '';
+                    document.getElementById('fmRelation').value = '';
+                    document.getElementById('fmAge').value = '';
+                    loadFamilyMembers();
+                } else {
+                    alert("Failed to save member.");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Connection failed.");
+            }
+        }
+
+        async function deleteMember(memberId) {
+            if(!confirm("Are you sure you want to remove this family member?")) return;
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/family/', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ member_id: memberId })
+                });
+
+                if(response.ok) {
+                    loadFamilyMembers();
+                } else {
+                    alert("Failed to delete member.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

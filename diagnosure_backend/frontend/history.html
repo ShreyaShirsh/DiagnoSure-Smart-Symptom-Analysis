@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical History - DiagnoSure Premium</title>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        if (!localStorage.getItem('userLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0066CC; --primary-dark: #0052A3;
+            --secondary: #00C853; --danger: #DC3545;
+            --text: #1A1A1A; --text-light: #666666;
+            --bg: #F4F7F6; --bg-card: #FFFFFF;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: white; padding: 15px 40px; display: flex;
+            justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .user-nav { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-light); text-decoration: none; font-weight: 600; margin-right: 20px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        /* Main Layout */
+        .main-container { padding: 40px; max-width: 1000px; margin: 0 auto; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .page-header h1 { font-size: 32px; color: var(--text); }
+        .page-header p { color: var(--text-light); font-size: 16px; margin-top: 8px; }
+
+        /* History Table Styles */
+        .history-card {
+            background: var(--bg-card); padding: 30px; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02);
+            overflow: hidden;
+        }
+
+        .history-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 24px 0; border-bottom: 1px solid #E9ECEF;
+            transition: all 0.3s;
+        }
+        .history-item:last-child { border-bottom: none; }
+        
+        .history-info { display: flex; gap: 20px; align-items: center; }
+        .history-icon {
+            width: 50px; height: 50px; border-radius: 12px; background: #E6F2FF;
+            color: var(--primary); display: flex; align-items: center; justify-content: center;
+        }
+        
+        .history-details h4 { font-size: 18px; margin-bottom: 6px; color: var(--text); }
+        .history-meta { display: flex; gap: 16px; color: var(--text-light); font-size: 14px; align-items: center; }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge.mild { background: #E8F5E9; color: #2E7D32; }
+        .badge.moderate { background: #FFF3E0; color: #EF6C00; }
+        .badge.severe { background: #FFEBEE; color: #C62828; }
+
+        .btn-download {
+            padding: 10px 20px; background: transparent; color: var(--primary);
+            border: 2px solid var(--primary); border-radius: 10px; font-weight: 600;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+            font-size: 14px;
+        }
+        .btn-download:hover { background: var(--primary); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,102,204,0.15); }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="dashboard.html" class="logo">
+            <svg width="36" height="36" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="30" fill="#0066CC"/>
+                <path d="M32 14v36M14 32h36" stroke="white" stroke-width="4"/>
+                <path d="M16 44h8l4-10 6 14 4-8h10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span>DiagnoSure</span>
+        </a>
+        <div class="user-nav">
+            <div class="nav-links">
+                <a href="dashboard.html">Dashboard</a>
+            </div>
+            <a href="account.html" class="user-profile" style="text-decoration: none; color: inherit;">
+                <div class="avatar">U</div>
+                <span>My Account</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1>Medical History & Reports</h1>
+                <p>A secure archive of all your AI symptom assessments and diagnostic reports.</p>
+            </div>
+            <a href="member_assessment.html" class="btn-download" style="background: var(--primary); color: white; border: none;">
+                + New Analysis
+            </a>
+        </div>
+
+        <div class="history-card" id="historyContainer">
+            <p style="text-align: center; color: var(--text-light); padding: 40px;">Loading your assessment history...</p>
+        </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userDataObj = JSON.parse(localStorage.getItem('userData') || '{}');
+            const container = document.getElementById('historyContainer');
+            
+            if (!userDataObj.id) {
+                container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 40px;">Error: No logged-in user found.</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/reports/${userDataObj.id}/`);
+                if (!response.ok) throw new Error("Failed to load");
+                
+                const reports = await response.json();
+                window.allReports = reports;
+                
+                if (reports.length === 0) {
+                    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 40px;">You haven't completed any assessments yet.</p>`;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                reports.forEach(report => {
+                    let badgeClass = "mild";
+                    let severityLabel = "Mild Symptoms";
+                    if (report.risk.toLowerCase() === "moderate") { badgeClass = "moderate"; severityLabel = "Moderate Symptoms"; }
+                    if (report.risk.toLowerCase() === "high" || report.risk.toLowerCase() === "severe") { badgeClass = "severe"; severityLabel = "Severe Symptoms"; }
+                    
+                    const el = document.createElement('div');
+                    el.className = 'history-item';
+                    el.innerHTML = `
+                        <div class="history-info">
+                            <div class="history-icon" ${badgeClass === 'severe' ? 'style="background: #FFEBEE; color: #C62828;"' : badgeClass === 'moderate' ? 'style="background: #FFF3E0; color: #EF6C00;"' : ''}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="history-details">
+                                <h4>AI Analysis: ${report.disease_name}</h4>
+                                <div class="history-meta">
+                                    <span>📅 ${report.created_at}</span>
+                                    <span>•</span>
+                                    <span>Patient: ${userDataObj.name}</span>
+                                    <span>•</span>
+                                    <span class="badge ${badgeClass}">${severityLabel}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-download" onclick="generateHistoryPDF(${report.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download PDF
+                        </button>
+                    `;
+                    container.appendChild(el);
+                });
+                
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 40px;">Network error loading assessment history.</p>`;
+            }
+        });
+
+        function generateHistoryPDF(reportId) {
+            const report = window.allReports.find(r => r.id === reportId);
+            if (!report) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const userDataObj = JSON.parse(localStorage.getItem('userData') || '{}');
+            const patientName = userDataObj.name || "Patient";
+
+            doc.setFontSize(22);
+            doc.text("DiagnoSure Medical Report", 105, 20, null, null, "center");
+
+            doc.setFontSize(14);
+            doc.text(`Patient Name: ${patientName}`, 20, 35);
+            doc.text(`Date of Assessment: ${report.created_at}`, 20, 45);
+
+            doc.setFontSize(18);
+            doc.setTextColor(0, 102, 204);
+            doc.text("Disease Detected: " + (report.disease_name || "Unknown"), 20, 60);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            let y = 75;
+
+            if (report.symptoms && report.symptoms.length > 0) {
+                doc.setFont(undefined, "bold");
+                doc.text("Associated Symptoms:", 20, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+                const symptomsText = typeof report.symptoms === 'string' ? report.symptoms : report.symptoms.join(", ");
+                doc.text(symptomsText, 20, y, { maxWidth: 170 });
+                y += 20; 
+            }
+
+            if (report.diet) {
+                doc.setFont(undefined, "bold");
+                doc.text("Recommended Diet:", 20, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+                doc.setFont(undefined, "italic");
+                doc.text(report.diet, 20, y, { maxWidth: 170 });
+                doc.setFont(undefined, "normal");
+                y += 25; 
+            }
+
+            if (report.precautions && report.precautions.length > 0) {
+                const precautionsArray = typeof report.precautions === 'string' ? JSON.parse(report.precautions) : report.precautions;
+                
+                doc.autoTable({
+                    startY: y,
+                    head: [['Precautions & Recommendations']],
+                    body: precautionsArray.map(p => [p]),
+                    theme: 'grid',
+                    styles: { fontSize: 11 },
+                    headStyles: { fillColor: [0, 102, 204] }
+                });
+            }
+
+            doc.save(`DiagnoSure_Report_${patientName.replace(/\s+/g, '_')}_${reportId}.pdf`);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Assessment - DiagnoSure</title>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        if (!localStorage.getItem('userLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0066CC; --primary-dark: #0052A3;
+            --secondary: #00C853; --danger: #DC3545;
+            --text: #1A1A1A; --text-light: #666666;
+            --bg: #F4F7F6; --bg-card: #FFFFFF;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: white; padding: 15px 40px; display: flex;
+            justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .user-nav { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { color: var(--text-light); text-decoration: none; font-weight: 600; margin-right: 20px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        /* Content Container */
+        .main-container { padding: 40px; max-width: 900px; margin: 0 auto; }
+        
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-size: 32px; color: var(--primary-dark); margin-bottom: 10px; }
+        .page-header p { color: var(--text-light); font-size: 18px; }
+
+        /* Assessment Form Styling (imported and adapted) */
+        .assessment-card {
+            background: var(--bg-card); padding: 40px; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02);
+        }
+        .assessment-form { display: flex; flex-direction: column; gap: 24px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        
+        .form-group label { font-weight: 600; color: var(--text); font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 14px 16px; border: 2px solid #E9ECEF; border-radius: 12px;
+            font-size: 16px; font-family: inherit; transition: all 0.3s; background: var(--bg);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1); background: white;
+        }
+
+        .severity-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .severity-option {
+            padding: 16px; border: 2px solid #E9ECEF; border-radius: 12px; text-align: center;
+            cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--bg);
+        }
+        .severity-option input[type="radio"] { display: none; }
+        .severity-option:hover { border-color: var(--primary); background: white; }
+        .severity-option input[type="radio"]:checked + span { color: var(--primary); font-weight: 600; }
+        .severity-option:has(input:checked) { border-color: var(--primary); background: #E6F2FF; }
+
+        .checkbox-label { display: flex; align-items: start; gap: 10px; cursor: pointer; }
+        .checkbox-label input[type="checkbox"] { margin-top: 4px; width: 18px; height: 18px; cursor: pointer; }
+
+        .submit-btn {
+            width: 100%; justify-content: center; margin-top: 10px; font-size: 18px; padding: 18px;
+            background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .submit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,102,204,0.2); }
+
+        /* Assessment Result */
+        .assessment-result { text-align: center; }
+        .result-header { margin-bottom: 30px; }
+        .result-header svg { margin-bottom: 20px; }
+        .result-header h3 { font-size: 28px; margin-bottom: 10px; color: var(--text); }
+        
+        .result-card { background: var(--bg); padding: 24px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+        .result-card h4 { font-size: 18px; margin-bottom: 16px; color: var(--text); }
+        .diagnosis-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .diagnosis-name { font-size: 20px; font-weight: 600; color: var(--text); }
+        .confidence-badge { background: #00C853; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .diagnosis-description { color: var(--text-light); line-height: 1.6; }
+        
+        .recommendations-list { list-style: none; padding: 0; }
+        .recommendations-list li { padding: 12px 0; border-bottom: 1px solid #E9ECEF; color: var(--text); }
+        .recommendations-list li:last-child { border-bottom: none; }
+        
+        .result-actions { display: flex; gap: 16px; margin-top: 30px; }
+        .result-actions button { flex: 1; }
+        
+        .btn-outline {
+            padding: 16px; background: transparent; color: var(--primary); border: 2px solid var(--primary);
+            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%;
+        }
+        .btn-outline:hover { background: rgba(0,102,204,0.05); }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .rotating { animation: rotate 1s linear infinite; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="dashboard.html" class="logo">
+            <svg width="36" height="36" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="30" fill="#0066CC"/>
+                <path d="M32 14v36M14 32h36" stroke="white" stroke-width="4"/>
+                <path d="M16 44h8l4-10 6 14 4-8h10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span>DiagnoSure</span>
+        </a>
+        <div class="user-nav">
+            <div class="nav-links">
+                <a href="dashboard.html">Dashboard</a>
+            </div>
+            <a href="account.html" class="user-profile" style="text-decoration: none; color: inherit;">
+                <div class="avatar">U</div>
+                <span>My Account</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="page-header">
+            <h1>Premium AI Assessment</h1>
+            <p>Run deeply detailed symptom analyses using our most advanced neural networks with zero restrictions.</p>
+        </div>
+
+        <div class="assessment-card">
+            <!-- Assessment Form -->
+            <form class="assessment-form" id="assessmentForm">
+                <div class="form-group">
+                    <label for="name">Patient Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter patient's full name" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" placeholder="Patient age" min="1" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="symptoms">Comprehensive Symptoms Description</label>
+                    <textarea id="symptoms" name="symptoms" rows="5" placeholder="Describe symptoms in detail (e.g., persistent fever for 3 days, throbbing headache, muscle ache...)" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Overall Symptom Severity</label>
+                    <div class="severity-selector">
+                        <label class="severity-option">
+                            <input type="radio" name="severity" value="mild" required>
+                            <span>😊 Mild</span>
+                        </label>
+                        <label class="severity-option">
+                            <input type="radio" name="severity" value="moderate" required>
+                            <span>😐 Moderate</span>
+                        </label>
+                        <label class="severity-option">
+                            <input type="radio" name="severity" value="severe" required>
+                            <span>😣 Severe</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration">Duration of Symptoms</label>
+                    <select id="duration" name="duration" required>
+                        <option value="">Select duration</option>
+                        <option value="less-24h">Less than 24 hours</option>
+                        <option value="1-3days">1-3 days</option>
+                        <option value="4-7days">4-7 days</option>
+                        <option value="1-2weeks">1-2 weeks</option>
+                        <option value="more-2weeks">More than 2 weeks</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="medical-history">Existing Medical Conditions (If any)</label>
+                    <input type="text" id="medical-history" name="medical-history" placeholder="e.g., Diabetes, Hypertension, Asthma">
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Start Premium AI Analysis
+                </button>
+            </form>
+            
+            <!-- Assessment Result -->
+            <div class="assessment-result" id="assessmentResult" style="display: none;">
+                <div class="result-header">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <h3>Analysis Complete</h3>
+                    <p>Your premium health insights are ready</p>
+                </div>
+                
+                <div class="result-card">
+                    <h4>Primary Diagnosis Match</h4>
+                    <div class="diagnosis-item">
+                        <span class="diagnosis-name" id="resultDiseaseName">Common Cold (Viral Infection)</span>
+                        <span class="confidence-badge" id="resultScore">92% Match</span>
+                    </div>
+                    <p class="diagnosis-description" id="resultDescription">Based on the comprehensive AI analysis of the symptoms provided, you likely have a common cold caused by a viral infection of the upper respiratory tract.</p>
+                </div>
+                
+                <div class="result-card">
+                    <h4>AI Suggested Treatment Plan</h4>
+                    <ul class="recommendations-list" id="resultPrecautions">
+                        <li>✓ Rest and heavily hydrate</li>
+                        <li>✓ OTC pain relievers (Ibuprofen / Acetaminophen) can alleviate body aches</li>
+                        <li>✓ Monitor temperature every 4 hours</li>
+                        <li>⚠️ Important: Consult a physician if symptoms last more than 7 days</li>
+                    </ul>
+                </div>
+                
+                <div class="result-actions">
+                    <button class="submit-btn" onclick="generatePDF()">
+                        Download Detailed PDF
+                    </button>
+                    <button class="btn-outline" onclick="location.reload()">
+                        Run New Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("assessmentForm");
+            
+            if (form) {
+                form.addEventListener("submit", function (e) {
+                    const name = document.getElementById("name").value;
+                    const age = document.getElementById("age").value;
+
+                    if (/[0-9]/.test(name)) {
+                        alert("Name should not contain numbers");
+                        e.preventDefault();
+                        return;
+                    }
+
+                    if (isNaN(age)) {
+                        alert("Age must contain numbers only");
+                        e.preventDefault();
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    const submitBtn = document.getElementById("submitBtn");
+                    const originalText = submitBtn.innerHTML;
+
+                    submitBtn.innerHTML =
+                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="rotating">' +
+                    '<circle cx="12" cy="12" r="10"></circle></svg> Processing Premium Analysis...';
+
+                    submitBtn.disabled = true;
+
+                    setTimeout(async () => {
+                        const symptoms = document.getElementById("symptoms").value;
+                        const severityEl = document.querySelector('input[name="severity"]:checked');
+                        const severity = severityEl ? severityEl.value : "";
+                        const duration = document.getElementById("duration").value;
+                        const medicalHistory = document.getElementById("medical-history").value;
+                        const patientName = document.getElementById("name").value;
+                        const userDataObj = JSON.parse(localStorage.getItem('userData') || '{}');
+                        
+                        try {
+                            const response = await fetch('http://127.0.0.1:8000/api/analyze/', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    user_id: userDataObj.id || null, 
+                                    symptoms: symptoms,
+                                    severity: severity,
+                                    duration: duration,
+                                    medical_history: medicalHistory,
+                                    patient_name: patientName
+                                })
+                            });
+                            
+                            const data = await response.json();
+                            const result = data[0]; 
+                            window.currentReport = result; // Store for PDF download
+                            
+                            document.getElementById("resultDiseaseName").textContent = result.disease || "Unknown Condition";
+                            document.getElementById("resultScore").textContent = Math.round(result.score || 0) + "% Match";
+                            
+                            let desc = result.description;
+                            if (!desc || desc.trim() === "") {
+                                desc = "Based on the comprehensive AI analysis of the symptoms provided, you likely are experiencing this condition. Monitor carefully.";
+                            }
+                            document.getElementById("resultDescription").textContent = desc;
+                            
+                            const precautionsList = document.getElementById("resultPrecautions");
+                            precautionsList.innerHTML = '';
+                            if (result.precautions && Array.isArray(result.precautions) && result.precautions.length > 0) {
+                                result.precautions.forEach(p => {
+                                    const li = document.createElement("li");
+                                    li.textContent = "✓ " + p;
+                                    precautionsList.appendChild(li);
+                                });
+                            } else {
+                                precautionsList.innerHTML = "<li>⚠️ Please consult a physician for a proper treatment plan.</li>";
+                            }
+
+                            form.style.display = "none";
+                            document.getElementById("assessmentResult").style.display = "block";
+                            document.getElementById("assessmentResult").scrollIntoView({ behavior: "smooth" });
+                        } catch (e) {
+                            console.error(e);
+                            alert("Failed to connect to the AI engine.");
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }
+                    }, 500);
+                });
+
+                // Real-time validation
+                document.getElementById("name").addEventListener("input", function () {
+                    if (/[^a-zA-Z\s]/.test(this.value)) {
+                        alert("Only letters are allowed in the name field");
+                        this.value = this.value.replace(/[^a-zA-Z\s]/g, "");
+                    }
+                });
+
+                document.getElementById("age").addEventListener("input", function () {
+                    if (/[^0-9]/.test(this.value)) {
+                        alert("Only numbers are allowed in the age field");
+                        this.value = this.value.replace(/[^0-9]/g, "");
+                    }
+                });
+            }
+        });
+
+        function generatePDF() {
+            if (!window.currentReport) {
+                alert("Please complete the assessment first.");
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const report = window.currentReport;
+            const patientName = document.getElementById("name").value || "Patient";
+
+            doc.setFontSize(22);
+            doc.text("DiagnoSure Medical Report", 105, 20, null, null, "center");
+
+            doc.setFontSize(14);
+            doc.text(`Patient Name: ${patientName}`, 20, 35);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 45);
+
+            doc.setFontSize(18);
+            doc.setTextColor(0, 102, 204);
+            doc.text("Disease Detected: " + (report.disease || "Unknown"), 20, 60);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            let y = 75;
+
+            if (report.symptoms && report.symptoms.length > 0) {
+                doc.setFont(undefined, "bold");
+                doc.text("Associated Symptoms:", 20, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+                doc.text(report.symptoms.join(", "), 20, y, { maxWidth: 170 });
+                y += 20; // estimate multiline
+            }
+
+            if (report.diet) {
+                doc.setFont(undefined, "bold");
+                doc.text("Recommended Diet:", 20, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+                doc.setFont(undefined, "italic");
+                doc.text(report.diet, 20, y, { maxWidth: 170 });
+                doc.setFont(undefined, "normal");
+                y += 25; // estimate multiline
+            }
+
+            if (report.precautions && report.precautions.length > 0) {
+                doc.autoTable({
+                    startY: y,
+                    head: [['Precautions & Recommendations']],
+                    body: report.precautions.map(p => [p]),
+                    theme: 'grid',
+                    styles: { fontSize: 11 },
+                    headStyles: { fillColor: [0, 102, 204] }
+                });
+            }
+
+            doc.save(`DiagnoSure_Report_${patientName.replace(/\s+/g, '_')}.pdf`);
+        }
+    </script>
+</body>
+</html>

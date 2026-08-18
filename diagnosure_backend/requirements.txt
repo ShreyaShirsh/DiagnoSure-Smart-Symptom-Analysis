@@ -1,0 +1,20 @@
+# ---- Core (required to run the backend) ----
+Django>=4.2,<5.1
+djangorestframework>=3.14
+django-cors-headers>=4.0
+faiss-cpu>=1.7
+scikit-learn>=1.3
+numpy>=1.24
+
+# ---- Optional: real semantic embeddings ----
+# Install these to switch the retriever from the TF-IDF fallback to a true
+# sentence-transformer model (better at synonyms like "peeing" ~ "urination").
+# Pulls in torch, so it is a larger download.
+# sentence-transformers>=2.2
+
+# ---- Optional: LLM generation layer (LangChain RAG) ----
+# Enable with DIAGNOSURE_USE_LLM=1 and one provider key. Falls back safely
+# to the knowledge-base description if not installed / no key.
+# langchain-core>=0.2
+# langchain-openai>=0.1        # if using OPENAI_API_KEY
+# langchain-anthropic>=0.1     # if using ANTHROPIC_API_KEY

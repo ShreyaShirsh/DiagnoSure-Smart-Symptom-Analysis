@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - DiagnoSure Premium</title>
+    <script>
+        if (!localStorage.getItem('userLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066CC;
+            --primary-dark: #0052A3;
+            --text: #1A1A1A;
+            --text-light: #666666;
+            --bg: #F4F7F6;
+            --bg-card: #FFFFFF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .main-container {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 102, 204, 0.2);
+        }
+
+        .welcome-banner h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-banner p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: #E6F2FF;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: 0.3s;
+            width: 100%;
+            display: block;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn.outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn.outline:hover {
+            background: rgba(0, 102, 204, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="#" class="logo">
+            <svg width="36" height="36" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="30" fill="#0066CC" />
+                <path d="M32 14v36M14 32h36" stroke="white" stroke-width="4" />
+                <path d="M16 44h8l4-10 6 14 4-8h10" stroke="white" stroke-width="3" fill="none"
+                    stroke-linecap="round" />
+            </svg>
+            <span>DiagnoSure</span>
+        </a>
+        <div class="user-nav">
+            <button onclick="logout()" class="btn outline"
+                style="padding: 8px 16px; width: auto; font-size: 14px;">Logout</button>
+            <a href="account.html" class="user-profile" style="text-decoration: none; color: inherit;">
+                <div class="avatar">U</div>
+                <span>My Account</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="welcome-banner">
+            <h1>Welcome to DiagnoSure Premium</h1>
+            <p>Your unlimited health insights and tracking dashboard.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Unlimited Assessment -->
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h3>Unlimited AI Assessment</h3>
+                <p>Run deeply detailed symptom analyses using our most advanced neural networks with zero restrictions.
+                </p>
+                <a href="member_assessment.html" class="btn">Start New Analysis</a>
+            </div>
+
+            <!-- Health History -->
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3>Medical History & Reports</h3>
+                <p>View past assessments, track your symptom progression over time, and download detailed PDF reports
+                    for your doctor.</p>
+                <a href="history.html" class="btn outline" style="text-align: center;">View History</a>
+            </div>
+
+            <!-- Family Profiles -->
+            <div class="card">
+                <div class="card-icon">👨‍👩‍👧</div>
+                <h3>Family Profiles</h3>
+                <p>Manage health records and run assessments for your spouse, children, or elderly parents under one
+                    account.</p>
+                <a href="family.html" class="btn outline" style="text-align: center;">Manage Family</a>
+            </div>
+
+            <!-- Book Appointments -->
+            <!-- <div class="card">
+                <div class="card-icon">📅</div>
+                <h3>Book Consultations</h3>
+                <p>Instantly schedule video or in-person clinics with verified doctors based on your AI assessment
+                    results.</p>
+                <a href="consultations.html" class="btn outline" style="text-align: center;">Find a Doctor</a>
+            </div> -->
+
+            <!-- Health Integrations -->
+            <!-- <div class="card">
+                <div class="card-icon">⌚</div>
+                <h3>Wearable Sync</h3>
+                <p>Connect your Apple Watch, Fitbit, or Garmin device to feed real-time vitals directly into the AI diagnostic engine.</p>
+                <a href="wearables.html" class="btn outline" style="text-align: center;">Connect Device</a>
+            </div> -->
+
+            <!-- Diet & Lifestyle -->
+            <div class="card">
+                <div class="card-icon">🥗</div>
+                <h3>Diet & Lifestyle AI</h3>
+                <p>Get personalized nutrition and exercise recommendations dynamically adjusted based on your ongoing
+                    health assessments.</p>
+                <a href="lifestyle.html" class="btn outline" style="text-align: center;">View Plan</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Override the limit in diagnosure_final if coming back to it later
+        localStorage.setItem("userLoggedIn", "true");
+        // We will also reset the free assessment count OR bypass it when userLoggedIn=true in diagnosure_final.html.
+        // Wait, let's update diagnosure_final.html to allow unlimited if userLoggedIn == "true".
+
+        function logout() {
+            localStorage.removeItem('userLoggedIn');
+            window.location.href = 'diagnosure_final.html';
+        }
+    </script>
+</body>
+
+</html>

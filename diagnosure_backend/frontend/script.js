@@ -1,6 +1,6 @@
 // // START ASSESSMENT
 // async function startAssessment() {
-//     const response = await fetch("http://127.0.0.1:8000/api/analyze/", {
+//     const response = await fetch("/api/analyze/", {
 //         method: "POST",
 //         headers: {
 //             "Content-Type": "application/json"
@@ -22,7 +22,7 @@
 //     const input = document.getElementById("chatInput");
 //     const message = input.value;
 
-//     const response = await fetch("http://127.0.0.1:8000/api/chatbot/", {
+//     const response = await fetch("/api/chatbot/", {
 //         method: "POST",
 //         headers: {
 //             "Content-Type": "application/json"
@@ -74,7 +74,7 @@ async function analyzeSymptoms() {
     resultDiv.innerHTML = "<p>Analyzing symptoms... ⏳</p>";
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/api/analyze/", {
+        const response = await fetch("/api/analyze/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

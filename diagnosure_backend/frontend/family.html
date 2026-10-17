@@ -138,7 +138,7 @@
             }
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/family/?user_id=${userDataObj.id}`);
+                const response = await fetch(`/api/family/?user_id=${userDataObj.id}`);
                 const members = await response.json();
                 
                 grid.innerHTML = `
@@ -194,7 +194,7 @@
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/family/', {
+                const response = await fetch('/api/family/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -223,7 +223,7 @@
         async function deleteMember(memberId) {
             if(!confirm("Are you sure you want to remove this family member?")) return;
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/family/', {
+                const response = await fetch('/api/family/', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ member_id: memberId })

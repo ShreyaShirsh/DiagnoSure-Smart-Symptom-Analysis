@@ -5,6 +5,8 @@ django-cors-headers>=4.0
 faiss-cpu>=1.7
 scikit-learn>=1.3
 numpy>=1.24
+dj-database-url>=2.1
+psycopg[binary]>=3.1
 
 # ---- Optional: real semantic embeddings ----
 # Install these to switch the retriever from the TF-IDF fallback to a true

@@ -1,5 +1,6 @@
 """Django settings for the DiagnoSure backend."""
 import os
+import shutil
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,8 +9,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get(
     "DIAGNOSURE_SECRET_KEY", "dev-insecure-change-me-in-production"
 )
-DEBUG = os.environ.get("DIAGNOSURE_DEBUG", "1") == "1"
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+DEBUG = os.environ.get("DIAGNOSURE_DEBUG", "0" if ON_VERCEL else "1") == "1"
 ALLOWED_HOSTS = ["*"]  # demo; restrict in production
+CSRF_TRUSTED_ORIGINS = ["https://*.vercel.app"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -54,12 +57,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "diagnosure.wsgi.application"
 
+SQLITE_PATH = BASE_DIR / "db.sqlite3"
+
+# Vercel's filesystem is read-only except /tmp, so copy the bundled SQLite
+# database there to allow writes. Data in /tmp is NOT persistent across
+# deployments/cold starts - set DATABASE_URL to a hosted Postgres for that.
+if ON_VERCEL:
+    tmp_db = Path("/tmp/db.sqlite3")
+    if not tmp_db.exists() and SQLITE_PATH.exists():
+        shutil.copy(SQLITE_PATH, tmp_db)
+    SQLITE_PATH = tmp_db
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": SQLITE_PATH,
     }
 }
+
+if os.environ.get("DATABASE_URL"):
+    import dj_database_url
+
+    DATABASES["default"] = dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=600)
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -71,6 +90,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {

@@ -1024,18 +1024,14 @@
                     </div>
 
                     <div class="result-card">
-                        <h4>Preliminary Diagnosis</h4>
-                        <div class="diagnosis-item">
-                            <span class="diagnosis-name">Common Cold (Viral Infection)</span>
-                            <span class="confidence-badge">85% Match</span>
-                        </div>
-                        <p class="diagnosis-description">Based on your symptoms, you may have a common cold caused by
-                            viral infection of the upper respiratory tract.</p>
+                        <h4>Top 3 Possible Conditions</h4>
+                        <div id="resultTopMatches"></div>
+                        <p class="diagnosis-description" id="resultDescription"></p>
                     </div>
 
                     <div class="result-card">
                         <h4>Recommendations</h4>
-                        <ul class="recommendations-list">
+                        <ul class="recommendations-list" id="resultPrecautions">
                             <li>✓ Rest and stay hydrated</li>
                             <li>✓ Take over-the-counter pain relievers if needed</li>
                             <li>✓ Monitor your temperature regularly</li>
@@ -1287,40 +1283,51 @@
 
             doc.setFontSize(18);
             doc.setTextColor(0, 102, 204);
-            doc.text("Disease Detected: Common Cold (Viral Infection)", 20, 60);
-            
+            const matches = window.currentMatches || [];
+            const report = matches[0] || {};
+            doc.text("Disease Detected: " + (report.disease || "Unknown"), 20, 60);
+
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(12);
             let y = 75;
 
-            // Mock Symptoms
-            doc.setFont(undefined, "bold");
-            doc.text("Associated Symptoms:", 20, y);
-            doc.setFont(undefined, "normal");
-            y += 8;
-            doc.text("mild fever, headache, throat pain", 20, y, { maxWidth: 170 });
-            y += 20;
+            if (matches.length > 0) {
+                doc.setFont(undefined, "bold");
+                doc.text("Top Possible Conditions:", 20, y);
+                doc.setFont(undefined, "normal");
+                matches.forEach((m, i) => {
+                    y += 8;
+                    doc.text(`${i + 1}. ${m.disease || "Unknown"} - ${Math.round(m.score || 0)}% Match`, 25, y);
+                });
+                y += 15;
+            }
 
-            // Mock Diet
-            doc.setFont(undefined, "bold");
-            doc.text("Recommended Diet:", 20, y);
-            doc.setFont(undefined, "normal");
-            y += 8;
-            doc.setFont(undefined, "italic");
-            doc.text("Hydrating fluids, warm soups, honey and lemon water.", 20, y, { maxWidth: 170 });
-            doc.setFont(undefined, "normal");
-            y += 25;
+            if (report.symptoms && report.symptoms.length > 0) {
+                doc.setFont(undefined, "bold");
+                doc.text("Associated Symptoms:", 20, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+                doc.text(report.symptoms.join(", "), 20, y, { maxWidth: 170 });
+                y += 20;
+            }
 
-            // Mock Precautions
+            if (report.diet) {
+                doc.setFont(undefined, "bold");
+                doc.text("Recommended Diet:", 20, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+                doc.setFont(undefined, "italic");
+                doc.text(report.diet, 20, y, { maxWidth: 170 });
+                doc.setFont(undefined, "normal");
+                y += 25;
+            }
+
             doc.autoTable({
                 startY: y,
                 head: [['Precautions & Recommendations']],
-                body: [
-                    ["Rest and heavily hydrate"],
-                    ["OTC pain relievers (Ibuprofen / Acetaminophen)"],
-                    ["Monitor temperature every 4 hours"],
-                    ["Consult a physician if symptoms last more than 7 days"]
-                ],
+                body: (report.precautions && report.precautions.length > 0)
+                    ? report.precautions.map(p => [p])
+                    : [["Please consult a physician for a proper treatment plan."]],
                 theme: 'grid',
                 styles: { fontSize: 11 },
                 headStyles: { fillColor: [0, 102, 204] }
@@ -1392,22 +1399,83 @@
 
                     document.head.appendChild(style);
 
-                    setTimeout(() => {
-                        // Increment score
-                        assessmentCount++;
-                        localStorage.setItem("freeAssessmentCount", assessmentCount);
+                    const severityEl = document.querySelector('input[name="severity"]:checked');
 
-                        form.style.display = "none";
-                        document.getElementById("assessmentResult").style.display = "block";
+                    fetch("/api/analyze/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            symptoms: document.getElementById("symptoms").value,
+                            severity: severityEl ? severityEl.value : "",
+                            duration: document.getElementById("duration").value,
+                            medical_history: document.getElementById("medical-history").value,
+                            patient_name: name
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Top 3 matches, highest match % first
+                            const topMatches = (Array.isArray(data) ? data : [])
+                                .slice()
+                                .sort((a, b) => (b.score || 0) - (a.score || 0))
+                                .slice(0, 3);
+                            if (topMatches.length === 0) {
+                                alert("No matching condition found. Please describe your symptoms in more detail.");
+                                return;
+                            }
+                            window.currentMatches = topMatches;
 
-                        document
-                            .getElementById("assessmentResult")
-                            .scrollIntoView({ behavior: "smooth" });
+                            const matchesList = document.getElementById("resultTopMatches");
+                            matchesList.innerHTML = "";
+                            topMatches.forEach((match, i) => {
+                                const item = document.createElement("div");
+                                item.className = "diagnosis-item";
+                                const matchName = document.createElement("span");
+                                matchName.className = "diagnosis-name";
+                                matchName.textContent = (i + 1) + ". " + (match.disease || "Unknown Condition");
+                                const badge = document.createElement("span");
+                                badge.className = "confidence-badge";
+                                badge.textContent = Math.round(match.score || 0) + "% Match";
+                                if (i > 0) badge.style.background = "#6C757D";
+                                item.appendChild(matchName);
+                                item.appendChild(badge);
+                                matchesList.appendChild(item);
+                            });
 
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
+                            document.getElementById("resultDescription").textContent = topMatches[0].description || "";
 
-                    }, 2000);
+                            const precautionsList = document.getElementById("resultPrecautions");
+                            precautionsList.innerHTML = "";
+                            const precautions = topMatches[0].precautions || [];
+                            if (precautions.length > 0) {
+                                precautions.forEach(p => {
+                                    const li = document.createElement("li");
+                                    li.textContent = "✓ " + p;
+                                    precautionsList.appendChild(li);
+                                });
+                            } else {
+                                precautionsList.innerHTML = "<li>⚠️ Please consult a physician for a proper treatment plan.</li>";
+                            }
+
+                            // Increment score
+                            assessmentCount++;
+                            localStorage.setItem("freeAssessmentCount", assessmentCount);
+
+                            form.style.display = "none";
+                            document.getElementById("assessmentResult").style.display = "block";
+
+                            document
+                                .getElementById("assessmentResult")
+                                .scrollIntoView({ behavior: "smooth" });
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert("Failed to connect to the AI engine.");
+                        })
+                        .finally(() => {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
 
                 });
 

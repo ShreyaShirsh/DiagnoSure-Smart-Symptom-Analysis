@@ -59,7 +59,8 @@ def analyze(request):
     Accepts (all but `symptoms` optional):
       user_id, symptoms (str or list), severity, duration, medical_history,
       patient_name
-    Returns a JSON array; the frontend reads element [0] as the primary match.
+    Returns a JSON array of up to 3 matches sorted by match % (descending);
+    element [0] is the primary match.
     """
     data = request.data
     symptoms = data.get("symptoms", "")
@@ -87,6 +88,9 @@ def analyze(request):
 
     if not results:
         return Response([], status=status.HTTP_200_OK)
+
+    # Top 3 suggestions, highest match % first.
+    results = sorted(results, key=lambda r: r["score"], reverse=True)[:3]
 
     # Optional LLM rewrite of the top result's description (RAG generation step).
     top = results[0]

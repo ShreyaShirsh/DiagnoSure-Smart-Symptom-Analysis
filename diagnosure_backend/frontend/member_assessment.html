@@ -225,11 +225,8 @@
                 </div>
                 
                 <div class="result-card">
-                    <h4>Primary Diagnosis Match</h4>
-                    <div class="diagnosis-item">
-                        <span class="diagnosis-name" id="resultDiseaseName">Common Cold (Viral Infection)</span>
-                        <span class="confidence-badge" id="resultScore">92% Match</span>
-                    </div>
+                    <h4>Top 3 Possible Conditions</h4>
+                    <div id="resultTopMatches"></div>
                     <p class="diagnosis-description" id="resultDescription">Based on the comprehensive AI analysis of the symptoms provided, you likely have a common cold caused by a viral infection of the upper respiratory tract.</p>
                 </div>
                 
@@ -311,12 +308,38 @@
                             });
                             
                             const data = await response.json();
-                            const result = data[0]; 
+                            // Top 3 matches, highest match % first
+                            const topMatches = (Array.isArray(data) ? data : [])
+                                .slice()
+                                .sort((a, b) => (b.score || 0) - (a.score || 0))
+                                .slice(0, 3);
+                            if (topMatches.length === 0) {
+                                alert("No matching condition found. Please describe your symptoms in more detail.");
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.disabled = false;
+                                return;
+                            }
+                            const result = topMatches[0];
                             window.currentReport = result; // Store for PDF download
-                            
-                            document.getElementById("resultDiseaseName").textContent = result.disease || "Unknown Condition";
-                            document.getElementById("resultScore").textContent = Math.round(result.score || 0) + "% Match";
-                            
+                            window.currentMatches = topMatches;
+
+                            const matchesList = document.getElementById("resultTopMatches");
+                            matchesList.innerHTML = '';
+                            topMatches.forEach((match, i) => {
+                                const item = document.createElement("div");
+                                item.className = "diagnosis-item";
+                                const name = document.createElement("span");
+                                name.className = "diagnosis-name";
+                                name.textContent = (i + 1) + ". " + (match.disease || "Unknown Condition");
+                                const badge = document.createElement("span");
+                                badge.className = "confidence-badge";
+                                badge.textContent = Math.round(match.score || 0) + "% Match";
+                                if (i > 0) badge.style.background = "#6C757D";
+                                item.appendChild(name);
+                                item.appendChild(badge);
+                                matchesList.appendChild(item);
+                            });
+
                             let desc = result.description;
                             if (!desc || desc.trim() === "") {
                                 desc = "Based on the comprehensive AI analysis of the symptoms provided, you likely are experiencing this condition. Monitor carefully.";
@@ -388,6 +411,16 @@
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(12);
             let y = 75;
+
+            const matches = window.currentMatches || [report];
+            doc.setFont(undefined, "bold");
+            doc.text("Top Possible Conditions:", 20, y);
+            doc.setFont(undefined, "normal");
+            matches.forEach((m, i) => {
+                y += 8;
+                doc.text(`${i + 1}. ${m.disease || "Unknown"} - ${Math.round(m.score || 0)}% Match`, 25, y);
+            });
+            y += 15;
 
             if (report.symptoms && report.symptoms.length > 0) {
                 doc.setFont(undefined, "bold");
